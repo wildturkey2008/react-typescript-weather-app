@@ -21,6 +21,7 @@ function App() {
     conditionText: "",
     icon: "",
   });
+  const [error, setError] = useState<boolean>(false);
 
   const getWeather = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,22 +29,46 @@ function App() {
       `http://api.weatherapi.com/v1/current.json?key=4c057edfe9874d1dafa44716231811&q=${city}&aqi=no`
     )
       .then((res) => res.json())
-      .then((data) =>
-        setResults({
-          country: data.location.country,
-          cityName: data.location.name,
-          temperature: data.current.temp_c,
-          conditionText: data.current.condition.text,
-          icon: data.current.condition.icon,
-        })
-      );
+      .then((data) => {
+        if (data.error) {
+          setError(true);
+        } else {
+          setResults({
+            country: data.location.country,
+            cityName: data.location.name,
+            temperature: data.current.temp_c,
+            conditionText: data.current.condition.text,
+            icon: data.current.condition.icon,
+          });
+          setError(false);
+        }
+      });
   };
+
+  const resetResults = () => {
+    setResults({
+      country: "",
+      cityName: "",
+      temperature: "",
+      conditionText: "",
+      icon: "",
+    });
+    setError(false);
+  };
+
   return (
     <div className="wrapper">
       <div className="container">
         <Title />
         <Form setCity={setCity} getWeather={getWeather} />
-        <Results results={results} />
+        {error ? (
+          <div>
+            <p>存在しない都市名です。</p>
+            <button onClick={resetResults}>初期画面に戻る</button>
+          </div>
+        ) : (
+          <Results results={results} />
+        )}
       </div>
     </div>
   );
